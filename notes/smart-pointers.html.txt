@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智慧指標 (Smart Pointers) 原理詳解 - C++ CODEBASE</title>
+    <link rel="stylesheet" href="../styles.css"> 
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Roboto+Mono&display=swap" rel="stylesheet">
+    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css" rel="stylesheet" />
+</head>
+<body>
+
+    <header class="navbar">
+        <div class="container nav-content">
+            <a href="../index.html" class="logo">C++ CODEBASE</a>
+            <nav class="nav-links">
+                <a href="../index.html#notes">最新筆記</a>
+                <a href="../about.html">關於我</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container" style="padding: 40px 0;">
+        <h1>智慧指標 (Smart Pointers) 原理詳解</h1>
+        <p class="tag">C++11</p>
+        <p>深入理解 RAII 觀念與 unique_ptr、shared_ptr 的底層實現，是掌握現代 C++ 記憶體管理的核心。</p>
+
+        <h2>1. RAII 原則</h2>
+        <p>RAII (Resource Acquisition Is Initialization) 是 C++ 中管理資源的關鍵技術，智慧指標就是基於此原則的經典實作。</p>
+
+        <h2>2. unique_ptr 範例</h2>
+        <pre class="line-numbers"><code class="language-cpp">
+#include <memory>
+#include <iostream>
+
+void example_unique_ptr() {
+    // 資源獲取：unique_ptr 接收 new 運算子的結果
+    std::unique_ptr<int> ptr = std::make_unique<int>(100);
+
+    // ... 進行操作 ...
+
+    // 離開作用域時，資源會自動釋放 (delete)
+    std::cout << "ptr 將在離開作用域後自動釋放記憶體" << std::endl;
+} // <--- 記憶體在這裡被安全釋放
+
+int main() {
+    example_unique_ptr();
+    return 0;
+}
+        </code></pre>
+        
+        <h2>🎥 相關教學短片</h2>
+        <div style="margin-top: 20px; position: relative; width: 100%; padding-bottom: 56.25%;">
+            <iframe style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;" 
+                src="YOUR_YOUTUBE_EMBED_LINK" 
+                frameborder="0" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowfullscreen>
+            </iframe>
+        </div>
+    </main>
+
+    <footer>
+        </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-cpp.min.js"></script> <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+</body>
+</html>
