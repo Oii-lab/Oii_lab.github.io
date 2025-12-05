@@ -164,6 +164,66 @@
       color: #00FF00;
     }
 
+
+    /* ... (所有原有的 CSS 樣式) ... */
+
+    /* ------------------- 響應式設計 (@media queries) ------------------- */
+    
+    /* 適用於平板電腦 (螢幕寬度小於 1024px) */
+    @media (max-width: 1024px) {
+        /* 1. 主要練習區塊：將兩欄改為單欄垂直堆疊 */
+        .practice-grid {
+            grid-template-columns: 1fr; /* 兩欄變一欄 */
+            gap: 50px; /* 增加垂直間距 */
+        }
+
+        /* 2. 移除左面板的分隔線，因為不再有右面板在旁邊 */
+        .panel.left {
+            border-right: none;
+            padding-right: 0;
+            padding-bottom: 25px; /* 在底部增加一些間距 */
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* 新增底部橫線分隔 */
+        }
+        
+        /* 3. 調整右面板的間距 */
+        .panel.right {
+            padding-left: 0;
+            padding-right: 0;
+        }
+
+        /* 4. 調整內容區的上邊距，可能需要更大空間來容納堆疊後的 navbar */
+        .content-section {
+            padding-top: 50px; /* 稍微減少上邊距，但仍避免被 navbar 遮擋 */
+        }
+    }
+    
+    /* 適用於手機 (螢幕寬度小於 768px) */
+    @media (max-width: 768px) {
+        
+        /* 1. 導覽列優化：將導航連結垂直堆疊 */
+        .nav-content {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .nav-links {
+            margin-top: 15px;
+            display: flex; /* 讓連結保持一行，但可以在下一層斷行 */
+            flex-wrap: wrap; 
+        }
+        .nav-links a {
+            margin-right: 15px; /* 連結之間增加右邊間距 */
+            margin-bottom: 5px; /* 連結之間增加底部間距 (換行時有用) */
+            font-size: 0.9em;
+        }
+
+        /* 2. 整體容器間距微調 */
+        .content-section {
+            padding: 30px 15px 30px 15px; /* 減少水平間距 */
+        }
+    }
+
+
+
   </style>
 </head>
 <body>
