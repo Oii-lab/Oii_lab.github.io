@@ -159,4 +159,12 @@ footer {
     padding: 20px 0;
     text-align: center;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
+
+}
+
+.visitor-count {
+    color: var(--color-accent); /* 使用霓虹色 */
+    font-weight: 600;
+    font-size: 0.9em;
+    opacity: 0.8;
 }
