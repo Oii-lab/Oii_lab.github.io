@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>打字練習工具（含填空小考）</title>
+  <style>
+    :root{
+      --card-bg: #ffffff;
+      --muted: #6b7280;
+      --accent: #111827;
+      --soft: #eef2ff;
+    }
+    *{box-sizing:border-box}
+    body {
+      font-family: Inter, "Noto Sans TC", Arial, sans-serif;
+      background: linear-gradient(180deg,#f7fbff 0%, #f5f5f7 100%);
+      margin: 0;
+      padding: 28px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      color: #111827;
+    }
+    .container {
+      width: 100%;
+      max-width: 980px;
+      background: var(--card-bg);
+      padding: 22px;
+      border-radius: 14px;
+      box-shadow: 0 8px 30px rgba(17,24,39,0.08);
+      display: grid;
+      grid-template-columns: 1fr 420px;
+      gap: 18px;
+    }
+    h2{margin:0 0 12px 0;font-size:20px}
+    .panel{padding:12px}
+    .left{border-right:1px solid rgba(15,23,42,0.04)}
+    textarea, input[type="text"]{
+      width:100%;
+      font-size:15px;
+      padding:10px 12px;
+      border-radius:10px;
+      border:1px solid #d1d5db;
+      outline:none;
+    }
+    textarea{min-height:120px;resize:vertical}
+    .btn{display:inline-block;padding:10px 14px;border-radius:10px;background:var(--accent);color:white;border:none;cursor:pointer;font-weight:600}
+    .btn.ghost{background:transparent;color:var(--accent);border:1px solid rgba(17,24,39,0.06)}
+    #displayText{margin-top:14px;background:#fcfdff;padding:18px;border-radius:12px;min-height:120px;font-size:17px;line-height:1.7;border:1px solid #f1f5f9}
+    #inputArea{min-height:140px;margin-top:12px}
+    .stats{margin-top:12px;display:flex;gap:12px;align-items:center}
+    .stat{background:#f8fafc;padding:8px 12px;border-radius:10px;font-weight:600}
+    .quiz-box{background:var(--soft);padding:14px;border-radius:12px}
+    .quiz-sentence{font-size:18px;font-weight:600;margin:10px 0}
+    .small{color:var(--muted);font-size:13px}
+    .progress{margin-top:10px;font-size:14px}
+    .blank-input{display:block;margin:6px 0 10px 0;padding:8px;border-radius:8px;border:1px solid #cbd5e1}
+    .answers{margin-top:8px}
+    .success{color:green;font-weight:700}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="panel left">
+      <h2>自訂內容打字練習</h2>
+      <textarea id="customText" placeholder="輸入你想練習的內容，可換行（支援段落練習）"></textarea>
+      <div style="margin-top:10px;display:flex;gap:8px">
+        <button class="btn" id="startPracticeBtn">開始練習</button>
+        <button class="btn ghost" id="resetPracticeBtn">重置</button>
+      </div>
+
+      <div id="displayText"></div>
+      <textarea id="inputArea" placeholder="開始打字...（多行支援）" disabled></textarea>
+
+      <div class="stats">
+        <div class="stat">速度：<span id="wpm">0</span> WPM</div>
+        <div class="stat">正確率：<span id="accuracy">0</span>%</div>
+        <div class="stat">時間：<span id="elapsed">0s</span></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>填空小考模式</h2>
+      <div class="small">請在下方每行一題，答案使用方括號包住。系統會把括號內容當作答案，並顯示為填空。範例已預填於題庫中，請直接按「匯入題庫」。</div>
+
+      <textarea id="quizData" style="height:160px;margin-top:10px;">I have an [apple].
+Networking improves [communication].
+This is a [very] [important] lesson.
+She bought a [silver] necklace.
+The [galaxy] is beautiful at night.</textarea>
+
+      <div style="margin-top:8px;display:flex;gap:8px">
+        <button class="btn" id="loadQuizBtn">匯入題庫</button>
+        <button class="btn ghost" id="toggleOrderBtn">順序出題（目前：隨機）</button>
+        <button class="btn ghost" id="autoNextBtn">答對自動下一題（關）</button>
+      </div>
+
+      <div class="quiz-box" style="margin-top:12px">
+        <div id="quizSentence" class="quiz-sentence">尚未匯入題庫</div>
+        <div id="quizInputs"></div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button class="btn" id="startQuizBtn">開始出題</button>
+          <button class="btn ghost" id="nextQuizBtn">跳到下一題</button>
+        </div>
+        <div id="blankResult" style="margin-top:10px;font-size:15px"></div>
+        <div class="progress" id="quizProgress"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // ---------- 全域狀態 ----------
+    let targetText = "";
+    let startTime = null;
+    let elapsedTimer = null;
+
+    // 打字練習行為
+    const startPracticeBtn = document.getElementById('startPracticeBtn');
+    const resetPracticeBtn = document.getElementById('resetPracticeBtn');
+    const displayTextEl = document.getElementById('displayText');
+    const inputArea = document.getElementById('inputArea');
+    const wpmEl = document.getElementById('wpm');
+    const accuracyEl = document.getElementById('accuracy');
+    const elapsedEl = document.getElementById('elapsed');
+
+    startPracticeBtn.addEventListener('click', startPractice);
+    resetPracticeBtn.addEventListener('click', resetPractice);
+
+    function startPractice(){
+      targetText = document.getElementById('customText').value;
+      if(!targetText || targetText.trim() === ''){ alert('請輸入內容！'); return; }
+      displayTextEl.textContent = targetText;
+      inputArea.value = '';
+      inputArea.disabled = false;
+      inputArea.focus();
+      startTime = Date.now();
+      if(elapsedTimer) clearInterval(elapsedTimer);
+      elapsedTimer = setInterval(updateElapsed, 500);
+      updateStats();
+    }
+
+    function resetPractice(){
+      inputArea.value = '';
+      inputArea.disabled = true;
+      displayTextEl.textContent = '';
+      wpmEl.textContent = '0';
+      accuracyEl.textContent = '0';
+      elapsedEl.textContent = '0s';
+      if(elapsedTimer) clearInterval(elapsedTimer);
+    }
+
+    function updateElapsed(){
+      if(!startTime) return;
+      const diff = Date.now() - startTime;
+      const s = Math.floor(diff/1000);
+      elapsedEl.textContent = s + 's';
+    }
+
+    function updateStats(){
+      const input = inputArea.value;
+      if(!startTime){ wpmEl.textContent='0'; accuracyEl.textContent='0'; return; }
+      const minutes = Math.max((Date.now()-startTime)/60000, 1/60);
+      const wpm = Math.round((input.length/5)/minutes);
+
+      let correct = 0;
+      for(let i=0;i<input.length;i++){
+        if(input[i] === (targetText[i] || '')) correct++;
+      }
+      const accuracy = input.length ? Math.round((correct/input.length)*100) : 100;
+
+      wpmEl.textContent = isNaN(wpm)?0:wpm;
+      accuracyEl.textContent = isNaN(accuracy)?0:accuracy;
+    }
+
+    inputArea.addEventListener('input', updateStats);
+
+    // ---------- 填空小考 ----------
+    const loadQuizBtn = document.getElementById('loadQuizBtn');
+    const startQuizBtn = document.getElementById('startQuizBtn');
+    const nextQuizBtn = document.getElementById('nextQuizBtn');
+    const toggleOrderBtn = document.getElementById('toggleOrderBtn');
+    const autoNextBtn = document.getElementById('autoNextBtn');
+
+    const quizSentenceEl = document.getElementById('quizSentence');
+    const quizInputsEl = document.getElementById('quizInputs');
+    const blankResultEl = document.getElementById('blankResult');
+    const quizProgressEl = document.getElementById('quizProgress');
+
+    let quizList = [];
+    let currentIndex = 0;
+    let randomOrder = true;
+    let autoNext = false;
+    let orderList = [];
+
+    loadQuizBtn.addEventListener('click', loadQuiz);
+    startQuizBtn.addEventListener('click', startBlankQuiz);
+    nextQuizBtn.addEventListener('click', goNextQuiz);
+    toggleOrderBtn.addEventListener('click', ()=>{
+      randomOrder = !randomOrder;
+      toggleOrderBtn.textContent = randomOrder? '順序出題（目前：隨機）':'順序出題（目前：依序）';
+    });
+    autoNextBtn.addEventListener('click', ()=>{
+      autoNext = !autoNext;
+      autoNextBtn.textContent = autoNext? '答對自動下一題（開）':'答對自動下一題（關）';
+    });
+
+    function loadQuiz(){
+      const raw = document.getElementById('quizData').value.trim();
+      if(!raw){ alert('請輸入題庫！'); return; }
+      quizList = raw.split(/\r?\n+/).map(line => {
+        const answers = [];
+        const regex = /\[(.+?)\]/g;
+        let m;
+        while((m = regex.exec(line)) !== null){
+          answers.push(m[1].trim());
+        }
+        if(answers.length===0) return null;
+        let template = line.replace(/\[(.+?)\]/g, '____');
+        return { raw: line, template, answers };
+      }).filter(Boolean);
+
+      if(quizList.length===0){ alert('匯入失敗：找不到符合格式的題目（請用方括號包住答案）'); return; }
+
+      orderList = quizList.map((_,i)=>i);
+      if(randomOrder) shuffle(orderList);
+      currentIndex = 0;
+      updateProgress();
+      alert('題庫匯入成功，共 ' + quizList.length + ' 題');
+    }
+
+    function startBlankQuiz(){
+      if(quizList.length===0){ alert('請先匯入題庫！'); return; }
+      const idx = orderList[currentIndex % orderList.length];
+      const q = quizList[idx];
+      renderQuiz(q);
+      blankResultEl.textContent = '';
+    }
+
+    function renderQuiz(q){
+      quizSentenceEl.textContent = q.template;
+      quizInputsEl.innerHTML = '';
+      q.answers.forEach((ans,i)=>{
+        const input = document.createElement('input');
+        input.className = 'blank-input';
+        input.placeholder = '填入第 ' + (i+1) + ' 個答案';
+        input.dataset.answer = ans;
+        input.addEventListener('input', ()=>checkBlank(q));
+        quizInputsEl.appendChild(input);
+      });
+    }
+
+    function checkBlank(q){
+      const inputs = Array.from(quizInputsEl.querySelectorAll('input'));
+      if(inputs.length===0) return;
+      const allCorrect = inputs.every(inp => inp.value.trim().toLowerCase() === (inp.dataset.answer||'').toLowerCase());
+      if(allCorrect){
+        blankResultEl.innerHTML = '<span class="success">✔ 全部正確！答案：' + q.answers.join(', ') + '</span>';
+        inputs.forEach(i=>i.disabled=true);
+        if(autoNext){
+          setTimeout(()=>{ goNextQuiz(); }, 800);
+        }
+      } else {
+        blankResultEl.textContent = '';
+      }
+    }
+
+    function goNextQuiz(){
+      if(quizList.length===0) return;
+      currentIndex = (currentIndex + 1) % orderList.length;
+      const idx = orderList[currentIndex];
+      renderQuiz(quizList[idx]);
+      blankResultEl.textContent = '';
+      updateProgress();
+    }
+
+    function updateProgress(){
+      quizProgressEl.textContent = '題庫 ' + quizList.length + ' 題 • 目前進度：第 ' + (currentIndex+1) + ' 題（序號 ' + orderList[currentIndex] + '）';
+    }
+
+    function shuffle(arr){
+      for(let i=arr.length-1;i>0;i--){
+        const j = Math.floor(Math.random()*(i+1));
+        [arr[i],arr[j]]=[arr[j],arr[i]];
+      }
+      return arr;
+    }
+
+    updateProgress();
+  </script>
+</body>
+</html>
