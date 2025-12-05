@@ -169,5 +169,34 @@ footer {
     opacity: 0.8;
 }
 
+/* ------------------ 響應式設計 (@media queries) - 手機尺寸 ------------------ */
+
+/* 適用於手機 (螢幕寬度小於 768px) */
+@media (max-width: 768px) {
+
+    /* 導覽列優化：將導航連結垂直堆疊 */
+    .nav-content {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .nav-links {
+        margin-top: 15px;
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+        .nav-links a {
+            margin-right: 15px;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+        }
+
+    /* Footer 堆疊 */
+    footer .container {
+        flex-direction: column;
+        gap: 10px;
+    }
+}
 
 
