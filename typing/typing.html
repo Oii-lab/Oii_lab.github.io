@@ -4,112 +4,230 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>打字練習工具（含填空小考）</title>
+  <link rel="stylesheet" href="../styles.css" /> 
+  
   <style>
-    :root{
-      --card-bg: #ffffff;
-      --muted: #6b7280;
-      --accent: #111827;
-      --soft: #eef2ff;
-    }
-    *{box-sizing:border-box}
+    /* ------------------- 針對 typing.html 的客製化 CSS ------------------- */
+    
     body {
-      font-family: Inter, "Noto Sans TC", Arial, sans-serif;
-      background: linear-gradient(180deg,#f7fbff 0%, #f5f5f7 100%);
-      margin: 0;
-      padding: 28px;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      min-height: 100vh;
-      color: #111827;
+        /* 【已修正】移除 body 上的垂直 padding，避免推開 navbar */
+        display: block;
+        padding: 0; 
+        margin: 0; 
+        min-height: auto;
+        font-family: 'Inter', sans-serif; 
     }
-    .container {
-      width: 100%;
-      max-width: 980px;
-      background: var(--card-bg);
-      padding: 22px;
-      border-radius: 14px;
-      box-shadow: 0 8px 30px rgba(17,24,39,0.08);
-      display: grid;
-      grid-template-columns: 1fr 420px;
-      gap: 18px;
+
+    /* 將原本的 .container 替換為 .content-section 的容器設定，以融入網站 */
+    .content-section {
+        max-width: 1200px;
+        margin: 0 auto;
+        /* 【已修正】新增 padding-top 來確保內容不會被固定導覽列遮擋 */
+        padding: 100px 20px 40px 20px; 
     }
-    h2{margin:0 0 12px 0;font-size:20px}
-    .panel{padding:12px}
-    .left{border-right:1px solid rgba(15,23,42,0.04)}
-    textarea, input[type="text"]{
-      width:100%;
-      font-size:15px;
-      padding:10px 12px;
-      border-radius:10px;
-      border:1px solid #d1d5db;
-      outline:none;
+
+    /* 主練習區塊風格 */
+    .practice-grid {
+        display: grid;
+        /* 【核心修改】將欄位設定為 1fr 1fr，讓左右兩欄平均分配空間 (各佔 50%) */
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        background-color: var(--color-code-bg); 
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 0 15px rgba(0, 255, 255, 0.1); 
     }
-    textarea{min-height:120px;resize:vertical}
-    .btn{display:inline-block;padding:10px 14px;border-radius:10px;background:var(--accent);color:white;border:none;cursor:pointer;font-weight:600}
-    .btn.ghost{background:transparent;color:var(--accent);border:1px solid rgba(17,24,39,0.06)}
-    #displayText{margin-top:14px;background:#fcfdff;padding:18px;border-radius:12px;min-height:120px;font-size:17px;line-height:1.7;border:1px solid #f1f5f9}
-    #inputArea{min-height:140px;margin-top:12px}
-    .stats{margin-top:12px;display:flex;gap:12px;align-items:center}
-    .stat{background:#f8fafc;padding:8px 12px;border-radius:10px;font-weight:600}
-    .quiz-box{background:var(--soft);padding:14px;border-radius:12px}
-    .quiz-sentence{font-size:18px;font-weight:600;margin:10px 0}
-    .small{color:var(--muted);font-size:13px}
-    .progress{margin-top:10px;font-size:14px}
-    .blank-input{display:block;margin:6px 0 10px 0;padding:8px;border-radius:8px;border:1px solid #cbd5e1}
-    .answers{margin-top:8px}
-    .success{color:green;font-weight:700}
+
+    /* 左右面板風格 */
+    .panel.left {
+        border-right: 1px solid rgba(255, 255, 255, 0.1);
+        padding-right: 30px;
+        padding-left: 0;
+    }
+    .panel.right {
+      padding-left: 30px;
+      padding-right: 0;
+    }
+    .panel h2 {
+        color: var(--color-accent);
+        font-size: 1.5em;
+        margin-bottom: 20px;
+        text-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
+    }
+    
+    /* ------------------- 文字輸入框 (textarea) 樣式：人性化大小與鎖定寬幅 ------------------- */
+    textarea {
+        width: 100%; 
+        min-height: 120px; 
+        padding: 15px;
+        margin-bottom: 10px; 
+        background-color: #212121;
+        color: var(--color-text-light);
+        border: 1px solid rgba(0, 255, 255, 0.4);
+        border-radius: 8px;
+        resize: vertical; 
+    }
+    
+    /* 實際打字區的高度 */
+    #inputArea {
+        min-height: 180px; 
+        margin-top: 10px;
+    }
+    /* 填空題庫的高度 */
+    #quizData {
+        min-height: 160px;
+    }
+    
+    /* 確保所有 input 樣式一致 */
+    input[type="text"]{
+        background-color: #212121;
+        color: var(--color-text-light);
+        border: 1px solid rgba(0, 255, 255, 0.4);
+        border-radius: 8px;
+        resize: none; 
+    }
+    
+    /* 按鈕風格 */
+    .btn-group .btn {
+      display: inline-block;
+      padding: 10px 18px;
+      border: 2px solid var(--color-accent);
+      background-color: transparent;
+      color: var(--color-accent);
+      font-weight: 700;
+      letter-spacing: 1px;
+      transition: all 0.3s;
+      box-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
+      cursor: pointer;
+      border-radius: 8px;
+    }
+
+    .btn-group .btn:hover {
+        background-color: var(--color-accent);
+        color: var(--color-bg-dark);
+        box-shadow: 0 0 15px var(--color-accent);
+    }
+
+    .btn-group .btn.ghost {
+      background: transparent;
+      color: var(--color-accent);
+      border: 2px solid rgba(0, 255, 255, 0.5);
+      box-shadow: none;
+    }
+
+    /* 顯示區塊 */
+    #displayText{
+        min-height: 180px; 
+        width: 100%;
+        padding: 15px;
+        margin-bottom: 10px;
+        background-color: #0d0d0d;
+        color: var(--color-text-light);
+        border: 1px solid var(--color-accent);
+        font-family: 'Roboto Mono', monospace;
+        white-space: pre-wrap;
+    }
+    
+    .stats{
+        margin-top: 20px;
+    }
+    .stat{
+        background: #1A1A1A;
+        color: var(--color-accent);
+        border: 1px solid rgba(0, 255, 255, 0.2);
+    }
+
+    /* 填空小考區塊 */
+    .quiz-box {
+        background: #1A1A1A;
+        border: 1px solid rgba(0, 255, 255, 0.3);
+    }
+    .quiz-sentence{
+        color: var(--color-text-light);
+        font-size: 1.2em;
+        text-shadow: 0 0 3px rgba(255, 255, 255, 0.2);
+    }
+    .small{
+        color: #888;
+    }
+    /* 填空題輸入框 */
+    .blank-input{
+        background-color: #0d0d0d;
+        color: var(--color-text-light);
+        border: 1px solid rgba(0, 255, 255, 0.6);
+        padding: 5px 10px;
+        width: auto; 
+        min-width: 120px;
+        margin-right: 8px;
+    }
+    .success{
+      color: #00FF00;
+    }
+
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="panel left">
-      <h2>自訂內容打字練習</h2>
-      <textarea id="customText" placeholder="輸入你想練習的內容，可換行（支援段落練習）"></textarea>
-      <div style="margin-top:10px;display:flex;gap:8px">
-        <button class="btn" id="startPracticeBtn">開始練習</button>
-        <button class="btn ghost" id="resetPracticeBtn">重置</button>
-      </div>
+    <header class="navbar">
+        <div class="container nav-content">
+            <a href="index.html" class="logo">Oii Lab</a>
+            <nav class="nav-links">
+                <a href="#notes">最新筆記</a>
+                <a href="typing/typing.html">Typing Practice</a>
+                <a href="https://www.youtube.com/@Oii_lab" target="_blank" rel="noopener noreferrer">C++ Shorts</a>
+            </nav>
+        </div>
+    </header>
+    
+    <div class="content-section"> 
+        <div class="practice-grid">
+            <div class="panel left">
+                <h2>自訂內容打字練習</h2>
+                <textarea id="customText" placeholder="輸入你想練習的內容，可換行（支援段落練習）"></textarea>
+                <div class="btn-group" style="margin-top:10px;display:flex;gap:8px">
+                    <button class="btn" id="startPracticeBtn">開始練習</button>
+                    <button class="btn ghost" id="resetPracticeBtn">重置</button>
+                </div>
 
-      <div id="displayText"></div>
-      <textarea id="inputArea" placeholder="開始打字...（多行支援）" disabled></textarea>
+                <div id="displayText"></div>
+                <textarea id="inputArea" placeholder="開始打字...（多行支援）" disabled></textarea>
 
-      <div class="stats">
-        <div class="stat">速度：<span id="wpm">0</span> WPM</div>
-        <div class="stat">正確率：<span id="accuracy">0</span>%</div>
-        <div class="stat">時間：<span id="elapsed">0s</span></div>
-      </div>
-    </div>
+                <div class="stats">
+                    <div class="stat">速度：<span id="wpm">0</span> WPM</div>
+                    <div class="stat">正確率：<span id="accuracy">0</span>%</div>
+                    <div class="stat">時間：<span id="elapsed">0s</span></div>
+                </div>
+            </div>
 
-    <div class="panel">
-      <h2>填空小考模式</h2>
-      <div class="small">請在下方每行一題，答案使用方括號包住。系統會把括號內容當作答案，並顯示為填空。範例已預填於題庫中，請直接按「匯入題庫」。</div>
+            <div class="panel right">
+                <h2>填空小考模式</h2>
+                <div class="small">請在下方每行一題，答案使用方括號包住。系統會把括號內容當作答案，並顯示為填空。範例已預填於題庫中，請直接按「匯入題庫」。</div>
 
-      <textarea id="quizData" style="height:160px;margin-top:10px;">I have an [apple].
+                <textarea id="quizData">I have an [apple].
 Networking improves [communication].
 This is a [very] [important] lesson.
 She bought a [silver] necklace.
 The [galaxy] is beautiful at night.</textarea>
 
-      <div style="margin-top:8px;display:flex;gap:8px">
-        <button class="btn" id="loadQuizBtn">匯入題庫</button>
-        <button class="btn ghost" id="toggleOrderBtn">順序出題（目前：隨機）</button>
-        <button class="btn ghost" id="autoNextBtn">答對自動下一題（關）</button>
-      </div>
+                <div class="btn-group" style="margin-top:8px;display:flex;gap:8px">
+                    <button class="btn" id="loadQuizBtn">匯入題庫</button>
+                    <button class="btn ghost" id="toggleOrderBtn">順序出題（目前：隨機）</button>
+                    <button class="btn ghost" id="autoNextBtn">答對自動下一題（關）</button>
+                </div>
 
-      <div class="quiz-box" style="margin-top:12px">
-        <div id="quizSentence" class="quiz-sentence">尚未匯入題庫</div>
-        <div id="quizInputs"></div>
-        <div style="display:flex;gap:8px;margin-top:8px">
-          <button class="btn" id="startQuizBtn">開始出題</button>
-          <button class="btn ghost" id="nextQuizBtn">跳到下一題</button>
+                <div class="quiz-box" style="margin-top:12px">
+                    <div id="quizSentence" class="quiz-sentence">尚未匯入題庫</div>
+                    <div id="quizInputs"></div>
+                    <div class="btn-group" style="display:flex;gap:8px;margin-top:8px">
+                        <button class="btn" id="startQuizBtn">開始出題</button>
+                        <button class="btn ghost" id="nextQuizBtn">跳到下一題</button>
+                    </div>
+                    <div id="blankResult" style="margin-top:10px;font-size:15px"></div>
+                    <div class="progress" id="quizProgress"></div>
+                </div>
+
+            </div>
         </div>
-        <div id="blankResult" style="margin-top:10px;font-size:15px"></div>
-        <div class="progress" id="quizProgress"></div>
-      </div>
-
     </div>
-  </div>
 
   <script>
     // ---------- 全域狀態 ----------
@@ -133,6 +251,7 @@ The [galaxy] is beautiful at night.</textarea>
       targetText = document.getElementById('customText').value;
       if(!targetText || targetText.trim() === ''){ alert('請輸入內容！'); return; }
       displayTextEl.textContent = targetText;
+      
       inputArea.value = '';
       inputArea.disabled = false;
       inputArea.focus();
@@ -244,12 +363,14 @@ The [galaxy] is beautiful at night.</textarea>
       quizInputsEl.innerHTML = '';
       q.answers.forEach((ans,i)=>{
         const input = document.createElement('input');
+        input.type = 'text'; 
         input.className = 'blank-input';
         input.placeholder = '填入第 ' + (i+1) + ' 個答案';
         input.dataset.answer = ans;
         input.addEventListener('input', ()=>checkBlank(q));
         quizInputsEl.appendChild(input);
       });
+      quizInputsEl.querySelector('input')?.focus(); 
     }
 
     function checkBlank(q){
@@ -277,7 +398,11 @@ The [galaxy] is beautiful at night.</textarea>
     }
 
     function updateProgress(){
-      quizProgressEl.textContent = '題庫 ' + quizList.length + ' 題 • 目前進度：第 ' + (currentIndex+1) + ' 題（序號 ' + orderList[currentIndex] + '）';
+      if(quizList.length === 0){
+        quizProgressEl.textContent = '題庫 0 題';
+        return;
+      }
+      quizProgressEl.textContent = '題庫 ' + quizList.length + ' 題 • 目前進度：第 ' + (currentIndex+1) + ' 題（序號 ' + (orderList[currentIndex] + 1) + '）';
     }
 
     function shuffle(arr){
@@ -288,7 +413,19 @@ The [galaxy] is beautiful at night.</textarea>
       return arr;
     }
 
-    updateProgress();
+    // 初始化時自動載入預設題庫
+    loadQuiz(); 
   </script>
+<footer>
+        <div class="container">
+            <p>&copy; 2025 Oii_lab. All rights reserved.</p>
+<br>
+<!--計數器的圖像已被設定的鏈接站點。不要執行代碼的任何修改。-->
+<a href="https://www.stylemap.co.jp/counter/taiwan/"><img src="https://www.f-counter.net/j/66/1764906602/" alt="網站計數器"></a>
+
+
+
+        </div>
+    </footer>
 </body>
 </html>
