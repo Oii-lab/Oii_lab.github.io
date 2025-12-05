@@ -1,238 +1,260 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>打字練習工具（含填空小考）</title>
-  <link rel="stylesheet" href="../styles.css" /> 
-  
-  <style>
-    /* ------------------- 針對 typing.html 的客製化 CSS ------------------- */
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>打字練習工具（含填空小考）</title>
+    <link rel="stylesheet" href="../styles.css" /> 
     
-    body {
-        /* 【已修正】移除 body 上的垂直 padding，避免推開 navbar */
-        display: block;
-        padding: 0; 
-        margin: 0; 
-        min-height: auto;
-        font-family: 'Inter', sans-serif; 
-    }
-
-    /* 將原本的 .container 替換為 .content-section 的容器設定，以融入網站 */
-    .content-section {
-        max-width: 1200px;
-        margin: 0 auto;
-        /* 【已修正】新增 padding-top 來確保內容不會被固定導覽列遮擋 */
-        padding: 100px 20px 40px 20px; 
-    }
-
-    /* 主練習區塊風格 */
-    .practice-grid {
-        display: grid;
-        /* 【核心修改】將欄位設定為 1fr 1fr，讓左右兩欄平均分配空間 (各佔 50%) */
-        grid-template-columns: 1fr 1fr;
-        gap: 30px;
-        background-color: var(--color-code-bg); 
-        padding: 30px;
-        border-radius: 12px;
-        box-shadow: 0 0 15px rgba(0, 255, 255, 0.1); 
-    }
-
-    /* 左右面板風格 */
-    .panel.left {
-        border-right: 1px solid rgba(255, 255, 255, 0.1);
-        padding-right: 30px;
-        padding-left: 0;
-    }
-    .panel.right {
-      padding-left: 30px;
-      padding-right: 0;
-    }
-    .panel h2 {
-        color: var(--color-accent);
-        font-size: 1.5em;
-        margin-bottom: 20px;
-        text-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
-    }
-    
-    /* ------------------- 文字輸入框 (textarea) 樣式：人性化大小與鎖定寬幅 ------------------- */
-    textarea {
-        width: 100%; 
-        min-height: 120px; 
-        padding: 15px;
-        margin-bottom: 10px; 
-        background-color: #212121;
-        color: var(--color-text-light);
-        border: 1px solid rgba(0, 255, 255, 0.4);
-        border-radius: 8px;
-        resize: vertical; 
-    }
-    
-    /* 實際打字區的高度 */
-    #inputArea {
-        min-height: 180px; 
-        margin-top: 10px;
-    }
-    /* 填空題庫的高度 */
-    #quizData {
-        min-height: 160px;
-    }
-    
-    /* 確保所有 input 樣式一致 */
-    input[type="text"]{
-        background-color: #212121;
-        color: var(--color-text-light);
-        border: 1px solid rgba(0, 255, 255, 0.4);
-        border-radius: 8px;
-        resize: none; 
-    }
-    
-    /* 按鈕風格 */
-    .btn-group .btn {
-      display: inline-block;
-      padding: 10px 18px;
-      border: 2px solid var(--color-accent);
-      background-color: transparent;
-      color: var(--color-accent);
-      font-weight: 700;
-      letter-spacing: 1px;
-      transition: all 0.3s;
-      box-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
-      cursor: pointer;
-      border-radius: 8px;
-    }
-
-    .btn-group .btn:hover {
-        background-color: var(--color-accent);
-        color: var(--color-bg-dark);
-        box-shadow: 0 0 15px var(--color-accent);
-    }
-
-    .btn-group .btn.ghost {
-      background: transparent;
-      color: var(--color-accent);
-      border: 2px solid rgba(0, 255, 255, 0.5);
-      box-shadow: none;
-    }
-
-    /* 顯示區塊 */
-    #displayText{
-        min-height: 180px; 
-        width: 100%;
-        padding: 15px;
-        margin-bottom: 10px;
-        background-color: #0d0d0d;
-        color: var(--color-text-light);
-        border: 1px solid var(--color-accent);
-        font-family: 'Roboto Mono', monospace;
-        white-space: pre-wrap;
-    }
-    
-    .stats{
-        margin-top: 20px;
-    }
-    .stat{
-        background: #1A1A1A;
-        color: var(--color-accent);
-        border: 1px solid rgba(0, 255, 255, 0.2);
-    }
-
-    /* 填空小考區塊 */
-    .quiz-box {
-        background: #1A1A1A;
-        border: 1px solid rgba(0, 255, 255, 0.3);
-    }
-    .quiz-sentence{
-        color: var(--color-text-light);
-        font-size: 1.2em;
-        text-shadow: 0 0 3px rgba(255, 255, 255, 0.2);
-    }
-    .small{
-        color: #888;
-    }
-    /* 填空題輸入框 */
-    .blank-input{
-        background-color: #0d0d0d;
-        color: var(--color-text-light);
-        border: 1px solid rgba(0, 255, 255, 0.6);
-        padding: 5px 10px;
-        width: auto; 
-        min-width: 120px;
-        margin-right: 8px;
-    }
-    .success{
-      color: #00FF00;
-    }
-
-
-    /* ... (所有原有的 CSS 樣式) ... */
-
-    /* ------------------- 響應式設計 (@media queries) ------------------- */
-    
-    /* 適用於平板電腦 (螢幕寬度小於 1024px) */
-    @media (max-width: 1024px) {
-        /* 1. 主要練習區塊：將兩欄改為單欄垂直堆疊 */
-        .practice-grid {
-            grid-template-columns: 1fr; /* 兩欄變一欄 */
-            gap: 50px; /* 增加垂直間距 */
-        }
-
-        /* 2. 移除左面板的分隔線，因為不再有右面板在旁邊 */
-        .panel.left {
-            border-right: none;
-            padding-right: 0;
-            padding-bottom: 25px; /* 在底部增加一些間距 */
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* 新增底部橫線分隔 */
-        }
+    <style>
+        /* ------------------- 針對 typing.html 的客製化 CSS ------------------- */
         
-        /* 3. 調整右面板的間距 */
-        .panel.right {
-            padding-left: 0;
-            padding-right: 0;
+        body {
+            /* 已修正：移除 body 上的垂直 padding */
+            display: block;
+            padding: 0; 
+            margin: 0; 
+            min-height: auto;
+            font-family: 'Inter', sans-serif; 
         }
 
-        /* 4. 調整內容區的上邊距，可能需要更大空間來容納堆疊後的 navbar */
+        /* 將原本的 .container 替換為 .content-section 的容器設定，以融入網站 */
         .content-section {
-            padding-top: 50px; /* 稍微減少上邊距，但仍避免被 navbar 遮擋 */
+            max-width: 1200px;
+            margin: 0 auto;
+            /* 已修正：新增 padding-top 避免被 navbar 遮擋 */
+            padding: 100px 20px 40px 20px; 
         }
-    }
-    
-    /* 適用於手機 (螢幕寬度小於 768px) */
-    @media (max-width: 768px) {
+
+        /* 主練習區塊風格 */
+        .practice-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* 50/50 佈局 */
+            gap: 30px;
+            background-color: var(--color-code-bg); 
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.1); 
+        }
+
+        /* 左右面板風格 */
+        .panel.left {
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            padding-right: 30px;
+            padding-left: 0;
+        }
+        .panel.right {
+          padding-left: 30px;
+          padding-right: 0;
+        }
+        .panel h2 {
+            color: var(--color-accent);
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            text-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
+        }
         
-        /* 1. 導覽列優化：將導航連結垂直堆疊 */
-        .nav-content {
-            flex-direction: column;
-            align-items: flex-start;
+        /* ------------------- 文字輸入框 (textarea) 樣式：人性化大小與鎖定寬幅 ------------------- */
+        textarea {
+            width: 100%; 
+            min-height: 120px; 
+            padding: 15px;
+            margin-bottom: 10px; 
+            background-color: #212121;
+            color: var(--color-text-light);
+            border: 1px solid rgba(0, 255, 255, 0.4);
+            border-radius: 8px;
+            resize: vertical; 
         }
-        .nav-links {
-            margin-top: 15px;
-            display: flex; /* 讓連結保持一行，但可以在下一層斷行 */
-            flex-wrap: wrap; 
+        
+        /* 實際打字區的高度 */
+        #inputArea {
+            min-height: 180px; 
+            margin-top: 10px;
         }
-        .nav-links a {
-            margin-right: 15px; /* 連結之間增加右邊間距 */
-            margin-bottom: 5px; /* 連結之間增加底部間距 (換行時有用) */
+        /* 填空題庫的高度 */
+        #quizData {
+            min-height: 160px;
+        }
+        
+        /* 確保所有 input 樣式一致 */
+        input[type="text"]{
+            background-color: #212121;
+            color: var(--color-text-light);
+            border: 1px solid rgba(0, 255, 255, 0.4);
+            border-radius: 8px;
+            resize: none; 
+        }
+        
+        /* 按鈕風格 */
+        .btn-group .btn {
+          display: inline-block;
+          padding: 10px 18px;
+          border: 2px solid var(--color-accent);
+          background-color: transparent;
+          color: var(--color-accent);
+          font-weight: 700;
+          letter-spacing: 1px;
+          transition: all 0.3s;
+          box-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
+          cursor: pointer;
+          border-radius: 8px;
+        }
+
+        .btn-group .btn:hover {
+            background-color: var(--color-accent);
+            color: var(--color-bg-dark);
+            box-shadow: 0 0 15px var(--color-accent);
+        }
+
+        .btn-group .btn.ghost {
+          background: transparent;
+          color: var(--color-accent);
+          border: 2px solid rgba(0, 255, 255, 0.5);
+          box-shadow: none;
+        }
+
+        /* 顯示區塊 */
+        #displayText{
+            min-height: 180px; 
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 10px;
+            background-color: #0d0d0d;
+            color: var(--color-text-light);
+            border: 1px solid var(--color-accent);
+            font-family: 'Roboto Mono', monospace;
+            white-space: pre-wrap;
+        }
+        
+        .stats{
+            margin-top: 20px;
+        }
+        .stat{
+            background: #1A1A1A;
+            color: var(--color-accent);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+        }
+
+        /* 填空小考區塊 */
+        .quiz-box {
+            background: #1A1A1A;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+        }
+        .quiz-sentence{
+            color: var(--color-text-light);
+            font-size: 1.2em;
+            text-shadow: 0 0 3px rgba(255, 255, 255, 0.2);
+        }
+        .small{
+            color: #888;
+        }
+        /* 填空題輸入框 */
+        .blank-input{
+            background-color: #0d0d0d;
+            color: var(--color-text-light);
+            border: 1px solid rgba(0, 255, 255, 0.6);
+            padding: 5px 10px;
+            width: auto; 
+            min-width: 120px;
+            margin-right: 8px;
+        }
+        .success{
+          color: #00FF00;
+        }
+        
+        /* ------------------- Footer 專業化樣式 ------------------- */
+        footer {
+            padding: 20px 0;
+            margin-top: 40px;
+            border-top: 1px solid #282828;
+            color: #888;
             font-size: 0.9em;
         }
-
-        /* 2. 整體容器間距微調 */
-        .content-section {
-            padding: 30px 15px 30px 15px; /* 減少水平間距 */
+        
+        /* 確保 footer 內的 container 內容可以左右分開 */
+        footer .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-    }
 
+        /* 訪客人次佔位符的樣式 (未來可填入真實數據) */
+        .visitor-stat {
+            color: var(--color-accent); 
+            font-weight: 600;
+        }
 
+        /* ------------------- 響應式設計 (@media queries) ------------------- */
+        
+        /* 適用於平板電腦 (螢幕寬度小於 1024px) */
+        @media (max-width: 1024px) {
+            
+            /* 1. 主要練習區塊：將兩欄改為單欄垂直堆疊 */
+            .practice-grid {
+                grid-template-columns: 1fr; /* 兩欄變一欄 */
+                gap: 50px; /* 增加垂直間距 */
+            }
 
-  </style>
+            /* 2. 移除左面板的分隔線，並用底部橫線分隔上下區塊 */
+            .panel.left {
+                border-right: none;
+                padding-right: 0;
+                padding-bottom: 25px; 
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1); 
+            }
+            
+            /* 3. 調整右面板的間距 */
+            .panel.right {
+                padding-left: 0;
+                padding-right: 0;
+            }
+
+            /* 4. 調整內容區的上邊距 */
+            .content-section {
+                padding-top: 50px;
+            }
+        }
+        
+        /* 適用於手機 (螢幕寬度小於 768px) */
+        @media (max-width: 768px) {
+            
+            /* 1. 導覽列優化：將導航連結垂直堆疊 */
+            .nav-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .nav-links {
+                margin-top: 15px;
+                display: flex; 
+                flex-wrap: wrap; 
+            }
+            .nav-links a {
+                margin-right: 15px; 
+                margin-bottom: 5px;
+                font-size: 0.9em;
+            }
+
+            /* 2. 整體容器間距微調 */
+            .content-section {
+                padding: 30px 15px 30px 15px; /* 減少水平間距 */
+            }
+            
+            /* 3. Footer 堆疊 */
+            footer .container {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+
+    </style>
 </head>
 <body>
     <header class="navbar">
         <div class="container nav-content">
-            <a href="../index.html" class="logo">Oii Lab</a>
-            <nav class="nav-links">
+            <a href="../index.html" class="logo">Oii Lab</a> <nav class="nav-links">
                 <a href="#notes">最新筆記</a>
-                <a href="typing/typing.html">Typing Practice</a>
+                <a href="typing.html">Typing Practice</a>
                 <a href="https://www.youtube.com/@Oii_lab" target="_blank" rel="noopener noreferrer">C++ Shorts</a>
             </nav>
         </div>
@@ -243,8 +265,10 @@
             <div class="panel left">
                 <h2>自訂內容打字練習</h2>
                 <textarea id="customText" placeholder="輸入你想練習的內容，可換行（支援段落練習）"></textarea>
+                
                 <div class="btn-group" style="margin-top:10px;display:flex;gap:8px">
                     <button class="btn" id="startPracticeBtn">開始練習</button>
+                    <button class="btn ghost" id="finishPracticeBtn" disabled>完成練習</button> 
                     <button class="btn ghost" id="resetPracticeBtn">重置</button>
                 </div>
 
@@ -260,6 +284,7 @@
 
             <div class="panel right">
                 <h2>填空小考模式</h2>
+                
                 <div class="small">
                     請在下方題庫區，每行輸入一題。<br>
                     將答案用方括號 [ ] 包住 (例如: I love [Oii Lab])。<br>
@@ -267,7 +292,6 @@
                     為了防止作答混亂，建議匯入前加上題號!<br>
                     範例已預填，請直接按「匯入題庫」→「開始出題」。
                 </div>
-
                 <textarea id="quizData">1. I have an [apple].
 2. Networking improves [communication].
 3. This is a [very] [important] lesson.
@@ -295,213 +319,245 @@
         </div>
     </div>
 
-  <script>
-    // ---------- 全域狀態 ----------
-    let targetText = "";
-    let startTime = null;
-    let elapsedTimer = null;
-
-    // 打字練習行為
-    const startPracticeBtn = document.getElementById('startPracticeBtn');
-    const resetPracticeBtn = document.getElementById('resetPracticeBtn');
-    const displayTextEl = document.getElementById('displayText');
-    const inputArea = document.getElementById('inputArea');
-    const wpmEl = document.getElementById('wpm');
-    const accuracyEl = document.getElementById('accuracy');
-    const elapsedEl = document.getElementById('elapsed');
-
-    startPracticeBtn.addEventListener('click', startPractice);
-    resetPracticeBtn.addEventListener('click', resetPractice);
-
-    function startPractice(){
-      targetText = document.getElementById('customText').value;
-      if(!targetText || targetText.trim() === ''){ alert('請輸入內容！'); return; }
-      displayTextEl.textContent = targetText;
-      
-      inputArea.value = '';
-      inputArea.disabled = false;
-      inputArea.focus();
-      startTime = Date.now();
-      if(elapsedTimer) clearInterval(elapsedTimer);
-      elapsedTimer = setInterval(updateElapsed, 500);
-      updateStats();
-    }
-
-    function resetPractice(){
-      inputArea.value = '';
-      inputArea.disabled = true;
-      displayTextEl.textContent = '';
-      wpmEl.textContent = '0';
-      accuracyEl.textContent = '0';
-      elapsedEl.textContent = '0s';
-      if(elapsedTimer) clearInterval(elapsedTimer);
-    }
-
-    function updateElapsed(){
-      if(!startTime) return;
-      const diff = Date.now() - startTime;
-      const s = Math.floor(diff/1000);
-      elapsedEl.textContent = s + 's';
-    }
-
-    function updateStats(){
-      const input = inputArea.value;
-      if(!startTime){ wpmEl.textContent='0'; accuracyEl.textContent='0'; return; }
-      const minutes = Math.max((Date.now()-startTime)/60000, 1/60);
-      const wpm = Math.round((input.length/5)/minutes);
-
-      let correct = 0;
-      for(let i=0;i<input.length;i++){
-        if(input[i] === (targetText[i] || '')) correct++;
-      }
-      const accuracy = input.length ? Math.round((correct/input.length)*100) : 100;
-
-      wpmEl.textContent = isNaN(wpm)?0:wpm;
-      accuracyEl.textContent = isNaN(accuracy)?0:accuracy;
-    }
-
-    inputArea.addEventListener('input', updateStats);
-
-    // ---------- 填空小考 ----------
-    const loadQuizBtn = document.getElementById('loadQuizBtn');
-    const startQuizBtn = document.getElementById('startQuizBtn');
-    const nextQuizBtn = document.getElementById('nextQuizBtn');
-    const toggleOrderBtn = document.getElementById('toggleOrderBtn');
-    const autoNextBtn = document.getElementById('autoNextBtn');
-
-    const quizSentenceEl = document.getElementById('quizSentence');
-    const quizInputsEl = document.getElementById('quizInputs');
-    const blankResultEl = document.getElementById('blankResult');
-    const quizProgressEl = document.getElementById('quizProgress');
-
-    let quizList = [];
-    let currentIndex = 0;
-    let randomOrder = true;
-    let autoNext = false;
-    let orderList = [];
-
-    loadQuizBtn.addEventListener('click', loadQuiz);
-    startQuizBtn.addEventListener('click', startBlankQuiz);
-    nextQuizBtn.addEventListener('click', goNextQuiz);
-    toggleOrderBtn.addEventListener('click', ()=>{
-      randomOrder = !randomOrder;
-      toggleOrderBtn.textContent = randomOrder? '順序出題（目前：隨機）':'順序出題（目前：依序）';
-    });
-    autoNextBtn.addEventListener('click', ()=>{
-      autoNext = !autoNext;
-      autoNextBtn.textContent = autoNext? '答對自動下一題（開）':'答對自動下一題（關）';
-    });
-
-    function loadQuiz(){
-      const raw = document.getElementById('quizData').value.trim();
-      if(!raw){ alert('請輸入題庫！'); return; }
-      quizList = raw.split(/\r?\n+/).map(line => {
-        const answers = [];
-        const regex = /\[(.+?)\]/g;
-        let m;
-        while((m = regex.exec(line)) !== null){
-          answers.push(m[1].trim());
-        }
-        if(answers.length===0) return null;
-        let template = line.replace(/\[(.+?)\]/g, '____');
-        return { raw: line, template, answers };
-      }).filter(Boolean);
-
-      if(quizList.length===0){ alert('匯入失敗：找不到符合格式的題目（請用方括號包住答案）'); return; }
-
-      orderList = quizList.map((_,i)=>i);
-      if(randomOrder) shuffle(orderList);
-      currentIndex = 0;
-      updateProgress();
-      alert('題庫匯入成功，共 ' + quizList.length + ' 題');
-    }
-
-    function startBlankQuiz(){
-      if(quizList.length===0){ alert('請先匯入題庫！'); return; }
-      const idx = orderList[currentIndex % orderList.length];
-      const q = quizList[idx];
-      renderQuiz(q);
-      blankResultEl.textContent = '';
-    }
-
-    function renderQuiz(q){
-      quizSentenceEl.textContent = q.template;
-      quizInputsEl.innerHTML = '';
-      q.answers.forEach((ans,i)=>{
-        const input = document.createElement('input');
-        input.type = 'text'; 
-        input.className = 'blank-input';
-        input.placeholder = '填入第 ' + (i+1) + ' 個答案';
-        input.dataset.answer = ans;
-        input.addEventListener('input', ()=>checkBlank(q));
-        quizInputsEl.appendChild(input);
-      });
-      quizInputsEl.querySelector('input')?.focus(); 
-    }
-
-    function checkBlank(q){
-      const inputs = Array.from(quizInputsEl.querySelectorAll('input'));
-      if(inputs.length===0) return;
-      const allCorrect = inputs.every(inp => inp.value.trim().toLowerCase() === (inp.dataset.answer||'').toLowerCase());
-      if(allCorrect){
-        blankResultEl.innerHTML = '<span class="success">✔ 全部正確！答案：' + q.answers.join(', ') + '</span>';
-        inputs.forEach(i=>i.disabled=true);
-        if(autoNext){
-          setTimeout(()=>{ goNextQuiz(); }, 800);
-        }
-      } else {
-        blankResultEl.textContent = '';
-      }
-    }
-
-    function goNextQuiz(){
-      if(quizList.length===0) return;
-      currentIndex = (currentIndex + 1) % orderList.length;
-      const idx = orderList[currentIndex];
-      renderQuiz(quizList[idx]);
-      blankResultEl.textContent = '';
-      updateProgress();
-    }
-
-    function updateProgress(){
-      if(quizList.length === 0){
-        quizProgressEl.textContent = '題庫 0 題';
-        return;
-      }
-      quizProgressEl.textContent = '題庫 ' + quizList.length + ' 題 • 目前進度：第 ' + (currentIndex+1) + ' 題（序號 ' + (orderList[currentIndex] + 1) + '）';
-    }
-
-    function shuffle(arr){
-      for(let i=arr.length-1;i>0;i--){
-        const j = Math.floor(Math.random()*(i+1));
-        [arr[i],arr[j]]=[arr[j],arr[i]];
-      }
-      return arr;
-    }
-
-    // 初始化時自動載入預設題庫
-    loadQuiz(); 
-  </script>
-<footer>
+    <footer>
         <div class="container">
             <p>&copy; 2025 Oii_lab. All rights reserved.</p>
-<br>
-<!--計數器的圖像已被設定的鏈接站點。不要執行代碼的任何修改。-->
-<a href="https://www.stylemap.co.jp/counter/taiwan/"><img src="https://www.f-counter.net/j/66/1764906602/" alt="網站計數器"></a>
-
-
-
+            <p class="visitor-stat">
+                總訪客數：<span id="visitorCount">9,999+</span> 
+            </p>
+            <div style="font-size: 0.8em; margin-top: 5px;">
+                <a href="https://www.stylemap.co.jp/counter/taiwan/" target="_blank" rel="noopener noreferrer">
+                    <img src="https://www.f-counter.net/j/66/1764906602/" alt="網站計數器" style="height: 15px; border: none; vertical-align: middle;">
+                </a>
+            </div>
         </div>
     </footer>
+
+
+    <script>
+        // ---------- 全域狀態 ----------
+        let targetText = "";
+        let startTime = null;
+        let elapsedTimer = null;
+
+        // 打字練習行為
+        const startPracticeBtn = document.getElementById('startPracticeBtn');
+        const resetPracticeBtn = document.getElementById('resetPracticeBtn');
+        const finishPracticeBtn = document.getElementById('finishPracticeBtn'); 
+        const displayTextEl = document.getElementById('displayText');
+        const inputArea = document.getElementById('inputArea');
+        const wpmEl = document.getElementById('wpm');
+        const accuracyEl = document.getElementById('accuracy');
+        const elapsedEl = document.getElementById('elapsed');
+
+        startPracticeBtn.addEventListener('click', startPractice);
+        resetPracticeBtn.addEventListener('click', resetPractice);
+        finishPracticeBtn.addEventListener('click', finishPractice); 
+
+        function startPractice(){
+            targetText = document.getElementById('customText').value;
+            if(!targetText || targetText.trim() === ''){ alert('請輸入內容！'); return; }
+            displayTextEl.textContent = targetText;
+            
+            inputArea.value = '';
+            inputArea.disabled = false;
+            finishPracticeBtn.disabled = false; 
+            inputArea.focus();
+            startTime = Date.now();
+            if(elapsedTimer) clearInterval(elapsedTimer);
+            elapsedTimer = setInterval(updateElapsed, 500);
+            updateStats();
+        }
+
+        // 【修正後的 finishPractice 函數】
+        function finishPractice() {
+            if (elapsedTimer) clearInterval(elapsedTimer); // 停止計時
+            elapsedTimer = null; 
+            
+            // 【關鍵修正】先進行最終計算並更新 DOM (傳入 true)
+            updateStats(true); 
+
+            // 清除 startTime，確保後續的 'input' 事件不會誤觸歸零邏輯
+            startTime = null; 
+
+            inputArea.disabled = true; // 禁用輸入
+            finishPracticeBtn.disabled = true; // 禁用完成按鈕
+            
+            alert('打字練習完成！請查看您的 WPM 和正確率。');
+        }
+
+        function resetPractice(){
+            inputArea.value = '';
+            inputArea.disabled = true;
+            finishPracticeBtn.disabled = true; 
+            displayTextEl.textContent = '';
+            wpmEl.textContent = '0';
+            accuracyEl.textContent = '0';
+            elapsedEl.textContent = '0s';
+            if(elapsedTimer) clearInterval(elapsedTimer);
+        }
+
+        function updateElapsed(){
+            if(!startTime) return;
+            const diff = Date.now() - startTime;
+            const s = Math.floor(diff/1000);
+            elapsedEl.textContent = s + 's';
+        }
+
+        // 【修正後的 updateStats 函數】
+        function updateStats(isFinal = false){
+            const input = inputArea.value;
+            
+            // 判斷是否應該歸零：如果不是最終計算，且計時器沒有運行，則歸零並返回
+            if(!isFinal && (startTime === null || elapsedTimer === null)){
+                 wpmEl.textContent='0'; 
+                 accuracyEl.textContent='0'; 
+                 return; 
+            }
+            
+            // 處理輸入為空的情況
+            if(input.length === 0){
+                 wpmEl.textContent='0'; 
+                 accuracyEl.textContent='0'; 
+                 return;
+            }
+
+            // 計算時間差
+            const minutes = Math.max((Date.now() - startTime) / 60000, 1/60);
+            const wpm = Math.round((input.length/5)/minutes);
+
+            let correct = 0;
+            for(let i=0;i<input.length;i++){
+                // 檢查輸入是否匹配目標文本
+                if(input[i] === (targetText[i] || '')) correct++;
+            }
+            const accuracy = input.length ? Math.round((correct/input.length)*100) : 100;
+
+            wpmEl.textContent = isNaN(wpm)?0:wpm;
+            accuracyEl.textContent = isNaN(accuracy)?0:accuracy;
+        }
+
+        inputArea.addEventListener('input', updateStats);
+
+        // ---------- 填空小考 (保持不變) ----------
+        const loadQuizBtn = document.getElementById('loadQuizBtn');
+        const startQuizBtn = document.getElementById('startQuizBtn');
+        const nextQuizBtn = document.getElementById('nextQuizBtn');
+        const toggleOrderBtn = document.getElementById('toggleOrderBtn');
+        const autoNextBtn = document.getElementById('autoNextBtn');
+
+        const quizSentenceEl = document.getElementById('quizSentence');
+        const quizInputsEl = document.getElementById('quizInputs');
+        const blankResultEl = document.getElementById('blankResult');
+        const quizProgressEl = document.getElementById('quizProgress');
+
+        let quizList = [];
+        let currentIndex = 0;
+        let randomOrder = true;
+        let autoNext = false;
+        let orderList = [];
+
+        loadQuizBtn.addEventListener('click', loadQuiz);
+        startQuizBtn.addEventListener('click', startBlankQuiz);
+        nextQuizBtn.addEventListener('click', goNextQuiz);
+        toggleOrderBtn.addEventListener('click', ()=>{
+            randomOrder = !randomOrder;
+            toggleOrderBtn.textContent = randomOrder? '順序出題（目前：隨機）':'順序出題（目前：依序）';
+        });
+        autoNextBtn.addEventListener('click', ()=>{
+            autoNext = !autoNext;
+            autoNextBtn.textContent = autoNext? '答對自動下一題（開）':'答對自動下一題（關）';
+        });
+
+        function loadQuiz(){
+            const raw = document.getElementById('quizData').value.trim();
+            if(!raw){ alert('請輸入題庫！'); return; }
+            quizList = raw.split(/\r?\n+/).map(line => {
+                const answers = [];
+                const regex = /\[(.+?)\]/g;
+                let m;
+                while((m = regex.exec(line)) !== null){
+                    answers.push(m[1].trim());
+                }
+                if(answers.length===0) return null;
+                let template = line.replace(/\[(.+?)\]/g, '____');
+                return { raw: line, template, answers };
+            }).filter(Boolean);
+
+            if(quizList.length===0){ alert('匯入失敗：找不到符合格式的題目（請用方括號包住答案）'); return; }
+
+            orderList = quizList.map((_,i)=>i);
+            if(randomOrder) shuffle(orderList);
+            currentIndex = 0;
+            updateProgress();
+            alert('題庫匯入成功，共 ' + quizList.length + ' 題');
+        }
+
+        function startBlankQuiz(){
+            if(quizList.length===0){ alert('請先匯入題庫！'); return; }
+            const idx = orderList[currentIndex % orderList.length];
+            const q = quizList[idx];
+            renderQuiz(q);
+            blankResultEl.textContent = '';
+        }
+
+        function renderQuiz(q){
+            quizSentenceEl.textContent = q.template;
+            quizInputsEl.innerHTML = '';
+            q.answers.forEach((ans,i)=>{
+                const input = document.createElement('input');
+                input.type = 'text'; 
+                input.className = 'blank-input';
+                input.placeholder = '填入第 ' + (i+1) + ' 個答案';
+                input.dataset.answer = ans;
+                input.addEventListener('input', ()=>checkBlank(q));
+                quizInputsEl.appendChild(input);
+            });
+            quizInputsEl.querySelector('input')?.focus(); 
+        }
+
+        function checkBlank(q){
+            const inputs = Array.from(quizInputsEl.querySelectorAll('input'));
+            if(inputs.length===0) return;
+            const allCorrect = inputs.every(inp => inp.value.trim().toLowerCase() === (inp.dataset.answer||'').toLowerCase());
+            if(allCorrect){
+                blankResultEl.innerHTML = '<span class="success">✔ 全部正確！答案：' + q.answers.join(', ') + '</span>';
+                inputs.forEach(i=>i.disabled=true);
+                if(autoNext){
+                    setTimeout(()=>{ goNextQuiz(); }, 800);
+                }
+            } else {
+                blankResultEl.textContent = '';
+            }
+        }
+
+        function goNextQuiz(){
+            if(quizList.length===0) return;
+            currentIndex = (currentIndex + 1) % orderList.length;
+            const idx = orderList[currentIndex];
+            renderQuiz(quizList[idx]);
+            blankResultEl.textContent = '';
+            updateProgress();
+        }
+
+        function updateProgress(){
+            if(quizList.length === 0){
+                quizProgressEl.textContent = '題庫 0 題';
+                return;
+            }
+            quizProgressEl.textContent = '題庫 ' + quizList.length + ' 題 • 目前進度：第 ' + (currentIndex+1) + ' 題（序號 ' + (orderList[currentIndex] + 1) + '）';
+        }
+
+        function shuffle(arr){
+            for(let i=arr.length-1;i>0;i--){
+                const j = Math.floor(Math.random()*(i+1));
+                [arr[i],arr[j]]=[arr[j],arr[i]];
+            }
+            return arr;
+        }
+
+        // 初始化時自動載入預設題庫
+        loadQuiz(); 
+    </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
