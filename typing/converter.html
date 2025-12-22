@@ -8,22 +8,21 @@
     <style>
         body { display: block; padding: 0; margin: 0; min-height: auto; font-family: 'Inter', sans-serif; }
         .content-section { max-width: 900px; margin: 0 auto; padding: 100px 20px 40px 20px; }
-        .converter-box { background-color: #1a1a1a; padding: 30px; border-radius: 12px; box-shadow: 0 0 15px rgba(0, 255, 255, 0.1); border: 1px solid rgba(0, 255, 255, 0.2); color: #fff; }
-        h2 { color: #00ffff; margin-bottom: 20px; }
+        .converter-box { background-color: var(--color-code-bg); padding: 30px; border-radius: 12px; box-shadow: 0 0 15px rgba(0, 255, 255, 0.1); border: 1px solid rgba(0, 255, 255, 0.2); }
+        h2 { color: var(--color-accent); margin-bottom: 20px; }
         
         .upload-area { border: 2px dashed rgba(0, 255, 255, 0.3); padding: 40px; text-align: center; border-radius: 8px; cursor: pointer; transition: 0.3s; margin-bottom: 20px; }
-        .upload-area:hover { border-color: #00ffff; background: rgba(0, 255, 255, 0.05); }
+        .upload-area:hover { border-color: var(--color-accent); background: rgba(0, 255, 255, 0.05); }
         
         .mode-selector { display: flex; gap: 10px; margin-bottom: 20px; }
-        .mode-btn { flex: 1; padding: 12px; border: 1px solid #00ffff; background: transparent; color: #00ffff; cursor: pointer; border-radius: 6px; font-weight: bold; }
-        .mode-btn.active { background: #00ffff; color: #000; }
+        .mode-btn { flex: 1; padding: 12px; border: 1px solid var(--color-accent); background: transparent; color: var(--color-accent); cursor: pointer; border-radius: 6px; font-weight: bold; }
+        .mode-btn.active { background: var(--color-accent); color: #000; }
 
-        textarea { width: 100%; height: 350px; background: #0d0d0d; color: #00ff00; border: 1px solid #333; padding: 15px; font-family: 'Roboto Mono', monospace; border-radius: 8px; margin-top: 10px; line-height: 1.5; }
+        textarea { width: 100%; height: 300px; background: #0d0d0d; color: #00ff00; border: 1px solid #333; padding: 15px; font-family: 'Roboto Mono', monospace; border-radius: 8px; margin-top: 10px; }
         .btn-group { display: flex; gap: 10px; margin-top: 20px; }
-        .btn { flex: 1; padding: 15px; border: 2px solid #00ffff; background: transparent; color: #00ffff; font-weight: bold; cursor: pointer; border-radius: 8px; transition: 0.3s; text-align: center; text-decoration: none; }
-        .btn:hover { background: #00ffff; color: #000; box-shadow: 0 0 15px #00ffff; }
+        .btn { flex: 1; padding: 15px; border: 2px solid var(--color-accent); background: transparent; color: var(--color-accent); font-weight: bold; cursor: pointer; border-radius: 8px; transition: 0.3s; text-align: center; text-decoration: none; }
+        .btn:hover { background: var(--color-accent); color: #000; box-shadow: 0 0 15px var(--color-accent); }
         .small { color: #888; font-size: 0.9em; margin-top: 10px; }
-        .error-msg { color: #ff5555; font-size: 0.85em; margin-top: 5px; white-space: pre-wrap; }
     </style>
 </head>
 <body>
@@ -40,8 +39,8 @@
 
     <div class="content-section">
         <div class="converter-box">
-            <h2>題目格式轉換器 (通用增強版)</h2>
-            <p class="small">適配多種換行與標點格式，自動去重並提取題目與答案。</p>
+            <h2>題目格式轉換器</h2>
+            <p class="small">將原始題庫 TXT 轉換為網頁可直接匯入的格式。 (完全同步您的 Python 邏輯)</p>
             
             <div class="mode-selector">
                 <button class="mode-btn active" id="modeBlank">填充題模式</button>
@@ -59,7 +58,6 @@
             </div>
 
             <textarea id="outputPreview" placeholder="轉換後的預覽將顯示於此..."></textarea>
-            <div id="errorLog" class="error-msg"></div>
         </div>
     </div>
 
@@ -69,10 +67,8 @@
         const dropZone = document.getElementById('dropZone');
         const outputPreview = document.getElementById('outputPreview');
         const downloadBtn = document.getElementById('downloadBtn');
-        const errorLog = document.getElementById('errorLog');
         let convertedText = "";
 
-        // 模式切換
         document.getElementById('modeBlank').onclick = function() {
             currentMode = 'blank';
             this.classList.add('active');
@@ -84,13 +80,11 @@
             document.getElementById('modeBlank').classList.remove('active');
         };
 
-        // 檔案上傳處理
         dropZone.onclick = () => fileInput.click();
         fileInput.onchange = () => {
             if(fileInput.files.length > 0) document.getElementById('fileNameDisplay').textContent = "已選取: " + fileInput.files[0].name;
         };
 
-        // 轉換按鈕觸發
         document.getElementById('convertBtn').onclick = function() {
             const file = fileInput.files[0];
             if(!file) return alert("請先選擇檔案！");
@@ -98,22 +92,17 @@
             const reader = new FileReader();
             reader.onload = function(e) {
                 const text = e.target.result;
-                errorLog.textContent = ""; // 清除舊錯誤
-                
                 if(currentMode === 'blank') {
                     convertedText = processBlank(text);
                 } else {
                     convertedText = processMCQ(text);
                 }
-                
                 outputPreview.value = convertedText;
                 downloadBtn.style.display = 'block';
             };
-            // 嘗試以 UTF-8 讀取，若有亂碼需求可在此調整
             reader.readAsText(file);
         };
 
-        // 下載功能
         downloadBtn.onclick = function() {
             const blob = new Blob([convertedText], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
@@ -123,43 +112,27 @@
             a.click();
         };
 
-        // --- 核心邏輯：填充題 (增強容錯版) ---
+        // --- 填充題邏輯 (同步您的 Python Code) ---
         function processBlank(text) {
             let results = [];
             let seen = new Set();
             let newId = 1;
-            let errors = [];
-
-            // 寬鬆切割：只要有「題目」二字就視為新區塊
-            const blocks = text.split(/題目/);
+            const blocks = text.split(/(?=題目\()/);
 
             for(let block of blocks) {
                 block = block.trim();
-                if(!block) continue;
+                if(!block || !block.includes("正確答案：") || !block.includes("題目(填充)")) continue;
 
-                // 1. 抓取題目內容：支援有無括號、多種冒號、換行
-                // 邏輯：從「填充」或開始處抓到「正確答案」或「答案」之前
-                const qMatch = block.match(/(?:\(填充\))?[:：\s]*([\s\S]+?)(?=\r?\n\s*(?:正確答案|答案)|$)/i);
-                const ansMatch = block.match(/(?:正確答案|答案)[:：\s]*([\s\S]+?)$/i);
-
-                if(!qMatch || !ansMatch) {
-                    if (block.length > 10) errors.push(`[填充] 解析失敗，請檢查格式：${block.substring(0, 20)}...`);
-                    continue;
-                }
+                const qMatch = block.match(/題目\(填充\)：\s*([\s\S]+?)(?=\n正確答案：|$)/);
+                const ansMatch = block.match(/正確答案：\s*([\s\S]+?)$/);
+                if(!qMatch || !ansMatch) continue;
 
                 let qTextRaw = qMatch[1].trim();
                 let ansText = ansMatch[1].trim();
-
-                // 2. 替換填充符號：支援 ___, ( ), （ ）, .......
-                let formattedQ = qTextRaw.replace(/[＿_]{2,}|[.]+ {0,1}[.]{1,}|[(（]\s*[)）]/g, `[${ansText}]`);
-                
-                // 如果題目內沒找到填充符號，則補在結尾
+                let formattedQ = qTextRaw.replace(/[＿_]{2,}|[.]+ {0,1}[.]{1,}/g, `[${ansText}]`);
                 if(!formattedQ.includes(`[${ansText}]`)) formattedQ = `${qTextRaw} [${ansText}]`;
 
-                // 3. 整理格式：移除多餘換行，轉為單行
-                let qFinal = formattedQ.split(/\r?\n+/).map(s => s.trim()).filter(s => s).join(" ");
-                
-                // 4. 去重
+                let qFinal = formattedQ.split(/\n+/).map(s => s.trim()).filter(s => s).join(" ");
                 let lookupKey = qFinal.replace(/[^\w\u4e00-\u9fa5]/g, '');
                 if(lookupKey && !seen.has(lookupKey)) {
                     seen.add(lookupKey);
@@ -167,66 +140,58 @@
                     newId++;
                 }
             }
-            if(errors.length > 0) errorLog.textContent = errors.join("\n");
             return results.join("\n");
         }
 
-        // --- 核心邏輯：選擇題 (增強容錯版) ---
+        // --- 選擇題邏輯 (同步您的最新 Python Code - 擷取選項版) ---
         function processMCQ(text) {
             let results = [];
             let seen = new Set();
             let newId = 1;
-            let errors = [];
-            
-            const blocks = text.split(/題目/);
+            const blocks = text.split(/(?=題目\()/);
 
             for(let block of blocks) {
                 block = block.trim();
-                if(!block) continue;
+                if(!block || !block.includes("題目(選擇)")) continue;
 
-                // 1. 抓題目：支援「(選擇)」或直接開始
-                const qMatch = block.match(/(?:\(選擇\))?[:：\s]*([\s\S]+?)(?=\r?\n\s*(?:選項|正確答案|答案)|$)/i);
-                if(!qMatch) {
-                    if (block.length > 10) errors.push(`[選擇] 無法抓取題目：${block.substring(0, 20)}...`);
-                    continue;
-                }
-                let qClean = qMatch[1].split(/\r?\n+/).map(s => s.trim()).filter(s => s).join(" ");
+                // A. 擷取題目
+                const qMatch = block.match(/題目\(選擇\)：\s*([\s\S]+?)(?=\n選項：|\n正確答案：|$)/);
+                if(!qMatch) continue;
+                let qClean = qMatch[1].split(/\n+/).map(s => s.trim()).filter(s => s).join(" ");
 
-                // 2. 去重判斷
+                // B. 去重
                 let lookupKey = qClean.replace(/[^\w\u4e00-\u9fa5]/g, '');
                 if(seen.has(lookupKey)) continue;
 
-                // 3. 抓選項：支援 A. (A) A: A、 等多種格式
-                const optBlockMatch = block.match(/(?:選項[:：\s]*)?([\s\S]+?)(?=\r?\n\s*(?:正確答案|答案)|$)/i);
+                // C. 擷取選項區塊
+                const optBlockMatch = block.match(/選項：\s*([\s\S]+?)(?=\n正確答案：|$)/);
                 let formattedOptions = [];
                 if(optBlockMatch) {
-                    const lines = optBlockMatch[1].trim().split(/\r?\n/);
+                    const lines = optBlockMatch[1].trim().split('\n');
                     lines.forEach(line => {
                         const l = line.trim();
                         if(!l) return;
-                        const optMatch = l.match(/^[(（]?([A-Za-z])[)）]?[\.．、:：\s]+([\s\S]+)$/);
+                        // 匹配 A. (A) A: 等格式
+                        const optMatch = l.match(/^\(?([A-Za-z])\)?[\.．、:：\s]+([\s\S]+)$/);
                         if(optMatch) {
                             formattedOptions.push(`${optMatch[1].toUpperCase()}: ${optMatch[2].trim()}`);
                         }
                     });
                 }
 
-                // 4. 抓正確答案
-                const ansMatch = block.match(/(?:正確答案|答案)[:：\s]*([A-Za-z\s,，]+)/i);
-                let ansStr = "答案: 未知";
+                // D. 擷取正確答案
+                const ansMatch = block.match(/正確答案：\s*([A-Za-z\s,，]+)/);
+                let ansStr = "";
                 if(ansMatch) {
-                    const labels = ansMatch[1].split(/[,，\s]+/).map(s => s.trim().toUpperCase()).filter(s => s);
+                    const labels = ansMatch[1].split(/[,，\n]/).map(s => s.trim().toUpperCase()).filter(s => s);
                     ansStr = `答案: ${labels.join(",")}`;
-                } else {
-                    errors.push(`[選擇] 題目 "${qClean.substring(0,10)}..." 找不到正確答案。`);
                 }
 
-                // 5. 組合
+                // E. 組合
                 seen.add(lookupKey);
                 results.push(`${newId}. ${qClean} | ${formattedOptions.join(" | ")} | ${ansStr}`);
                 newId++;
             }
-            if(errors.length > 0) errorLog.textContent = errors.join("\n");
             return results.join("\n");
         }
     </script>
