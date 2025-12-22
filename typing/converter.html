@@ -8,21 +8,19 @@
     <style>
         body { display: block; padding: 0; margin: 0; min-height: auto; font-family: 'Inter', sans-serif; }
         .content-section { max-width: 900px; margin: 0 auto; padding: 100px 20px 40px 20px; }
-        .converter-box { background-color: var(--color-code-bg); padding: 30px; border-radius: 12px; box-shadow: 0 0 15px rgba(0, 255, 255, 0.1); border: 1px solid rgba(0, 255, 255, 0.2); }
-        h2 { color: var(--color-accent); margin-bottom: 20px; }
-        
+        .converter-box { background-color: #1a1a1a; padding: 30px; border-radius: 12px; box-shadow: 0 0 15px rgba(0, 255, 255, 0.1); border: 1px solid rgba(0, 255, 255, 0.2); color: #fff; }
+        h2 { color: #00ffff; margin-bottom: 20px; }
         .upload-area { border: 2px dashed rgba(0, 255, 255, 0.3); padding: 40px; text-align: center; border-radius: 8px; cursor: pointer; transition: 0.3s; margin-bottom: 20px; }
-        .upload-area:hover { border-color: var(--color-accent); background: rgba(0, 255, 255, 0.05); }
-        
+        .upload-area:hover { border-color: #00ffff; background: rgba(0, 255, 255, 0.05); }
         .mode-selector { display: flex; gap: 10px; margin-bottom: 20px; }
-        .mode-btn { flex: 1; padding: 12px; border: 1px solid var(--color-accent); background: transparent; color: var(--color-accent); cursor: pointer; border-radius: 6px; font-weight: bold; }
-        .mode-btn.active { background: var(--color-accent); color: #000; }
-
-        textarea { width: 100%; height: 300px; background: #0d0d0d; color: #00ff00; border: 1px solid #333; padding: 15px; font-family: 'Roboto Mono', monospace; border-radius: 8px; margin-top: 10px; }
+        .mode-btn { flex: 1; padding: 12px; border: 1px solid #00ffff; background: transparent; color: #00ffff; cursor: pointer; border-radius: 6px; font-weight: bold; }
+        .mode-btn.active { background: #00ffff; color: #000; }
+        textarea { width: 100%; height: 350px; background: #0d0d0d; color: #00ff00; border: 1px solid #333; padding: 15px; font-family: 'Roboto Mono', monospace; border-radius: 8px; margin-top: 10px; line-height: 1.5; }
         .btn-group { display: flex; gap: 10px; margin-top: 20px; }
-        .btn { flex: 1; padding: 15px; border: 2px solid var(--color-accent); background: transparent; color: var(--color-accent); font-weight: bold; cursor: pointer; border-radius: 8px; transition: 0.3s; text-align: center; text-decoration: none; }
-        .btn:hover { background: var(--color-accent); color: #000; box-shadow: 0 0 15px var(--color-accent); }
+        .btn { flex: 1; padding: 15px; border: 2px solid #00ffff; background: transparent; color: #00ffff; font-weight: bold; cursor: pointer; border-radius: 8px; transition: 0.3s; text-align: center; text-decoration: none; }
+        .btn:hover { background: #00ffff; color: #000; box-shadow: 0 0 15px #00ffff; }
         .small { color: #888; font-size: 0.9em; margin-top: 10px; }
+        .error-msg { color: #ffbb33; font-size: 0.85em; margin-top: 10px; white-space: pre-wrap; }
     </style>
 </head>
 <body>
@@ -39,8 +37,8 @@
 
     <div class="content-section">
         <div class="converter-box">
-            <h2>題目格式轉換器</h2>
-            <p class="small">將原始題庫 TXT 轉換為網頁可直接匯入的格式。 (完全同步您的 Python 邏輯)</p>
+            <h2>題目格式轉換器 (精準模式版)</h2>
+            <p class="small">切換模式後將自動過濾非該類型的題目，並強力去重。</p>
             
             <div class="mode-selector">
                 <button class="mode-btn active" id="modeBlank">填充題模式</button>
@@ -58,6 +56,7 @@
             </div>
 
             <textarea id="outputPreview" placeholder="轉換後的預覽將顯示於此..."></textarea>
+            <div id="errorLog" class="error-msg"></div>
         </div>
     </div>
 
@@ -67,6 +66,7 @@
         const dropZone = document.getElementById('dropZone');
         const outputPreview = document.getElementById('outputPreview');
         const downloadBtn = document.getElementById('downloadBtn');
+        const errorLog = document.getElementById('errorLog');
         let convertedText = "";
 
         document.getElementById('modeBlank').onclick = function() {
@@ -88,51 +88,46 @@
         document.getElementById('convertBtn').onclick = function() {
             const file = fileInput.files[0];
             if(!file) return alert("請先選擇檔案！");
-
             const reader = new FileReader();
             reader.onload = function(e) {
                 const text = e.target.result;
-                if(currentMode === 'blank') {
-                    convertedText = processBlank(text);
-                } else {
-                    convertedText = processMCQ(text);
-                }
+                errorLog.textContent = ""; 
+                convertedText = (currentMode === 'blank') ? processBlank(text) : processMCQ(text);
                 outputPreview.value = convertedText;
-                downloadBtn.style.display = 'block';
+                downloadBtn.style.display = resultsCount > 0 ? 'block' : 'none';
             };
             reader.readAsText(file);
         };
 
-        downloadBtn.onclick = function() {
-            const blob = new Blob([convertedText], { type: 'text/plain' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `converted_${currentMode}_${Date.now()}.txt`;
-            a.click();
-        };
+        let resultsCount = 0;
 
-        // --- 填充題邏輯 (同步您的 Python Code) ---
+        // --- 填充題邏輯 (加入模式過濾) ---
         function processBlank(text) {
             let results = [];
             let seen = new Set();
             let newId = 1;
-            const blocks = text.split(/(?=題目\()/);
+            const blocks = text.split(/題目/);
 
             for(let block of blocks) {
                 block = block.trim();
-                if(!block || !block.includes("正確答案：") || !block.includes("題目(填充)")) continue;
+                if(!block) continue;
 
-                const qMatch = block.match(/題目\(填充\)：\s*([\s\S]+?)(?=\n正確答案：|$)/);
-                const ansMatch = block.match(/正確答案：\s*([\s\S]+?)$/);
+                // 【修正 1】過濾：如果區塊內沒出現「填充」字眼，直接跳過（防止選擇題跑進來）
+                if(!block.includes("填充")) continue;
+
+                const qMatch = block.match(/(?:\(填充\))?[:：\s]*([\s\S]+?)(?=\r?\n\s*(?:正確答案|答案)|$)/i);
+                const ansMatch = block.match(/(?:正確答案|答案)[:：\s]*([\s\S]+?)$/i);
+
                 if(!qMatch || !ansMatch) continue;
 
                 let qTextRaw = qMatch[1].trim();
                 let ansText = ansMatch[1].trim();
-                let formattedQ = qTextRaw.replace(/[＿_]{2,}|[.]+ {0,1}[.]{1,}/g, `[${ansText}]`);
+                let formattedQ = qTextRaw.replace(/[＿_]{2,}|[.]+ {0,1}[.]{1,}|[(（]\s*[)）]/g, `[${ansText}]`);
                 if(!formattedQ.includes(`[${ansText}]`)) formattedQ = `${qTextRaw} [${ansText}]`;
 
-                let qFinal = formattedQ.split(/\n+/).map(s => s.trim()).filter(s => s).join(" ");
+                let qFinal = formattedQ.split(/\r?\n+/).map(s => s.trim()).filter(s => s).join(" ");
+                
+                // 【修正 2】去重：移除所有非中英文字元，確保重複題目被濾掉
                 let lookupKey = qFinal.replace(/[^\w\u4e00-\u9fa5]/g, '');
                 if(lookupKey && !seen.has(lookupKey)) {
                     seen.add(lookupKey);
@@ -140,58 +135,55 @@
                     newId++;
                 }
             }
+            resultsCount = results.length;
             return results.join("\n");
         }
 
-        // --- 選擇題邏輯 (同步您的最新 Python Code - 擷取選項版) ---
+        // --- 選擇題邏輯 (加入模式過濾) ---
         function processMCQ(text) {
             let results = [];
             let seen = new Set();
             let newId = 1;
-            const blocks = text.split(/(?=題目\()/);
+            const blocks = text.split(/題目/);
 
             for(let block of blocks) {
                 block = block.trim();
-                if(!block || !block.includes("題目(選擇)")) continue;
+                if(!block) continue;
 
-                // A. 擷取題目
-                const qMatch = block.match(/題目\(選擇\)：\s*([\s\S]+?)(?=\n選項：|\n正確答案：|$)/);
+                // 【修正 1】過濾：如果區塊內沒出現「選擇」字眼，直接跳過（防止填充題跑進來）
+                if(!block.includes("選擇")) continue;
+
+                const qMatch = block.match(/(?:\(選擇\))?[:：\s]*([\s\S]+?)(?=\r?\n\s*(?:選項|正確答案|答案)|$)/i);
                 if(!qMatch) continue;
-                let qClean = qMatch[1].split(/\n+/).map(s => s.trim()).filter(s => s).join(" ");
+                
+                let qClean = qMatch[1].split(/\r?\n+/).map(s => s.trim()).filter(s => s).join(" ");
 
-                // B. 去重
+                // 【修正 2】去重：防止重複處理
                 let lookupKey = qClean.replace(/[^\w\u4e00-\u9fa5]/g, '');
                 if(seen.has(lookupKey)) continue;
 
-                // C. 擷取選項區塊
-                const optBlockMatch = block.match(/選項：\s*([\s\S]+?)(?=\n正確答案：|$)/);
+                const optBlockMatch = block.match(/(?:選項[:：\s]*)?([\s\S]+?)(?=\r?\n\s*(?:正確答案|答案)|$)/i);
                 let formattedOptions = [];
                 if(optBlockMatch) {
-                    const lines = optBlockMatch[1].trim().split('\n');
+                    const lines = optBlockMatch[1].trim().split(/\r?\n/);
                     lines.forEach(line => {
-                        const l = line.trim();
-                        if(!l) return;
-                        // 匹配 A. (A) A: 等格式
-                        const optMatch = l.match(/^\(?([A-Za-z])\)?[\.．、:：\s]+([\s\S]+)$/);
-                        if(optMatch) {
-                            formattedOptions.push(`${optMatch[1].toUpperCase()}: ${optMatch[2].trim()}`);
-                        }
+                        const optMatch = line.trim().match(/^[(（]?([A-Za-z])[)）]?[\.．、:：\s]+([\s\S]+)$/);
+                        if(optMatch) formattedOptions.push(`${optMatch[1].toUpperCase()}: ${optMatch[2].trim()}`);
                     });
                 }
 
-                // D. 擷取正確答案
-                const ansMatch = block.match(/正確答案：\s*([A-Za-z\s,，]+)/);
-                let ansStr = "";
+                const ansMatch = block.match(/(?:正確答案|答案)[:：\s]*([A-Za-z\s,，]+)/i);
+                let ansStr = "答案: 未知";
                 if(ansMatch) {
-                    const labels = ansMatch[1].split(/[,，\n]/).map(s => s.trim().toUpperCase()).filter(s => s);
+                    const labels = ansMatch[1].split(/[,，\s]+/).map(s => s.trim().toUpperCase()).filter(s => s);
                     ansStr = `答案: ${labels.join(",")}`;
                 }
 
-                // E. 組合
                 seen.add(lookupKey);
                 results.push(`${newId}. ${qClean} | ${formattedOptions.join(" | ")} | ${ansStr}`);
                 newId++;
             }
+            resultsCount = results.length;
             return results.join("\n");
         }
     </script>
