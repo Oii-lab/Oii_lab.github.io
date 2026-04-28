@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>oii_lab — 演算法教學基地</title>
+      <link rel="icon" type="image/png" href="assets/images/oii.png" sizes="32x32">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     Navbar（靜態，不抽成 component，因為全頁共用）
+     ══════════════════════════════════════════ -->
+<nav>
+  <div class="nav-logo" onclick="showSection('home')">
+    <span>~/</span>oii_lab<span>.dev</span>
+  </div>
+
+  <!-- 桌機版導覽連結 -->
+  <ul class="nav-links">
+    <li><a href="#home"   onclick="showSection('home')"   id="nav-home"   class="active">home</a></li>
+    <li><a href="#videos" onclick="showSection('videos')" id="nav-videos">videos</a></li>
+    <li><a href="#notes"  onclick="showSection('notes')"  id="nav-notes">notes</a></li>
+    <li><a href="#quiz"   onclick="showSection('quiz')"   id="nav-quiz">quiz</a></li>
+    <li><a href="#about"  onclick="showSection('about')"  id="nav-about">about</a></li>
+  </ul>
+
+  <!-- 手機版漢堡按鈕 -->
+  <button class="nav-hamburger" id="navHamburger" aria-label="開啟選單" aria-expanded="false">
+    <span class="bar"></span>
+    <span class="bar"></span>
+    <span class="bar"></span>
+  </button>
+</nav>
+
+<!-- 手機版下拉選單（navbar 外面，覆蓋在頁面上） -->
+<div class="nav-mobile-menu" id="navMobileMenu" role="navigation" aria-label="手機導覽">
+  <a href="#home"   onclick="mobileNav('home')"   id="mnav-home"   class="active"><span>⌂</span> home   <span class="nav-arrow">›</span></a>
+  <a href="#videos" onclick="mobileNav('videos')" id="mnav-videos"><span>▶</span> videos <span class="nav-arrow">›</span></a>
+  <a href="#notes"  onclick="mobileNav('notes')"  id="mnav-notes"><span>📝</span> notes  <span class="nav-arrow">›</span></a>
+  <a href="#quiz"   onclick="mobileNav('quiz')"   id="mnav-quiz"><span>🎮</span> quiz   <span class="nav-arrow">›</span></a>
+  <a href="#about"  onclick="mobileNav('about')"  id="mnav-about"><span>👤</span> about  <span class="nav-arrow">›</span></a>
+</div>
+
+<!-- ══════════════════════════════════════════
+     Main：各 section 是空殼，內容由 main.js 動態注入
+     ══════════════════════════════════════════ -->
+<main>
+  <section id="home"   class="active"></section>
+  <section id="videos"></section>
+  <section id="notes"></section>
+  <section id="quiz"></section>
+  <section id="about"></section>
+</main>
+
+<!-- ══════════════════════════════════════════
+     Footer
+     ══════════════════════════════════════════ -->
+<footer>
+  <span>oii_lab</span> · 演算法教學基地 · 用程式思維理解世界
+</footer>
+
+<!-- ══════════════════════════════════════════
+     影片播放 Modal（全站共用，不屬於任何 section）
+     ══════════════════════════════════════════ -->
+<div class="modal-overlay" id="videoModal">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title" id="modalTitle"></span>
+      <button class="modal-close" onclick="closeVideoModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <iframe id="modalFrame" allowfullscreen></iframe>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     Scripts（載入順序：資料 → UI → 邏輯）
+     ══════════════════════════════════════════ -->
+<script src="js/data.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/main.js"></script>
+
+</body>
+</html>
+

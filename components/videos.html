@@ -1,0 +1,22 @@
+<!-- ═══════════════════════════════════════════
+     videos.html — 影片列表區塊
+     ═══════════════════════════════════════════ -->
+<div class="sec-header">
+  <div class="prompt">// 教學影片庫</div>
+  <h2>Videos</h2>
+  <div class="underline"></div>
+</div>
+
+<!-- 篩選列 -->
+<div class="filter-bar">
+  <span class="filter-label">filter:</span>
+  <button class="tag-btn active" onclick="filterVideos('all',   this)">全部</button>
+  <button class="tag-btn"        onclick="filterVideos('cpp',   this)">C++</button>
+  <button class="tag-btn"        onclick="filterVideos('sort',  this)">排序</button>
+  <button class="tag-btn"        onclick="filterVideos('ds',    this)">資料結構</button>
+  <button class="tag-btn"        onclick="filterVideos('algo',  this)">演算法</button>
+  <button class="tag-btn"        onclick="filterVideos('graph', this)">圖論</button>
+</div>
+
+<!-- 影片格線（由 ui.js renderVideos() 填入） -->
+<div class="video-grid" id="videoGrid"></div>

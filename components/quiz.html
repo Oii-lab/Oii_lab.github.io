@@ -1,0 +1,74 @@
+<!-- ═══════════════════════════════════════════
+     quiz.html — 測驗區塊
+     ═══════════════════════════════════════════ -->
+<div class="sec-header">
+  <div class="prompt">// 概念小測驗</div>
+  <h2>Quiz</h2>
+  <div class="underline"></div>
+</div>
+
+<div class="quiz-container">
+
+  <!-- 主題選擇卡片 -->
+  <div id="quizSelect">
+    <p class="quiz-hint">選擇主題開始測驗：</p>
+    <div class="quiz-select">
+      <div class="quiz-topic-card" onclick="startQuiz('sort')">
+        <div class="quiz-topic-icon">🔢</div>
+        <div class="quiz-topic-name">排序演算法</div>
+        <div class="quiz-topic-count">5 題</div>
+      </div>
+      <div class="quiz-topic-card" onclick="startQuiz('cpp')">
+        <div class="quiz-topic-icon">⚙️</div>
+        <div class="quiz-topic-name">C++ 基礎</div>
+        <div class="quiz-topic-count">5 題</div>
+      </div>
+      <div class="quiz-topic-card" onclick="startQuiz('complexity')">
+        <div class="quiz-topic-icon">📊</div>
+        <div class="quiz-topic-name">時間複雜度</div>
+        <div class="quiz-topic-count">5 題</div>
+      </div>
+      <div class="quiz-topic-card" onclick="startQuiz('BubbleSort')">
+        <!--<div class="quiz-topic-icon">🫧</div>-->
+        <div class="quiz-topic-name">🫧Bubble Sort</div>
+        <div class="quiz-topic-count">10 題</div>
+      </div>
+      <div class="quiz-topic-card" onclick="startQuiz('InsertionSort')">
+        <!--<div class="quiz-topic-icon">🃏</div>-->
+        <div class="quiz-topic-name">🃏Insertion Sort</div>
+        <div class="quiz-topic-count">10 題</div>
+      </div>
+      <div class="quiz-topic-card" onclick="startQuiz('SelectionSort')">
+        <!--<div class="quiz-topic-icon">🎯</div>-->
+        <div class="quiz-topic-name">🎯Selection Sort</div>
+        <div class="quiz-topic-count">10 題</div>
+      </div>
+      
+    </div>
+  </div>
+
+  <!-- 測驗進行中畫面（由 ui.js 控制顯示） -->
+  <div class="quiz-game" id="quizGame">
+    <div class="quiz-game-header">
+      <span class="quiz-topic-label" id="quizTopicLabel"></span>
+      <button class="btn dim sm" onclick="backToSelect()">← 返回</button>
+    </div>
+
+    <!-- 進度條 -->
+    <div class="quiz-progress-bar">
+      <div class="quiz-progress-fill" id="quizProgressFill" style="width:0%"></div>
+    </div>
+
+    <!-- 題目卡片（由 ui.js _renderQuestion() 動態填入） -->
+    <div id="quizCardArea"></div>
+
+    <!-- 測驗結果 -->
+    <div class="quiz-result" id="quizResult">
+      <div class="result-label">// 測驗完成</div>
+      <div class="result-score" id="resultScore"></div>
+      <div class="result-msg"   id="resultMsg"></div>
+      <button class="btn" onclick="backToSelect()">再試一次</button>
+    </div>
+  </div>
+
+</div>
